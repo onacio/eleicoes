@@ -9,7 +9,7 @@ st.set_page_config(layout='wide')
 colunas = ['NM_VOTAVEL', 'SG_PARTIDO', 'NR_VOTAVEL', 'NR_SECAO', 'QT_VOTOS']
 
 # Carregando arquivo com dados
-df = pd.read_csv('bweb_1t_BA_091020241636.csv', delimiter=';', encoding='latin1')
+df = pd.read_csv('maragogipe.csv', delimiter=';', encoding='latin1')
 
 st.write("""
     # Eleições Municipais de 2024 Bahia
