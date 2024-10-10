@@ -6,10 +6,17 @@ import plotly.express as px
 st.set_page_config(layout='wide')
 
 # Colunas que serão exibidas
-colunas = ['NM_VOTAVEL', 'SG_PARTIDO', 'NR_VOTAVEL', 'NR_SECAO', 'QT_VOTOS']
+colunas = ['NM_VOTAVEL', 'SG_PARTIDO', 'NR_VOTAVEL', 'NR_SECAO', 'QT_VOTOS', 'NM_LOCAL_VOTACAO']  # Adicione 'ENDERECO'
 
 # Carregando arquivo com dados
 df = pd.read_csv('maragogipe.csv', delimiter=';', encoding='latin1')
+
+# Carregando arquivo com endereços
+df_enderecos = pd.read_csv('local.csv', delimiter=';', encoding='latin1')  # Altere o nome do arquivo conforme necessário
+
+# Supondo que o df_enderecos tenha as colunas NR_SECAO e ENDERECO
+# Exibir as primeiras linhas para garantir que as colunas estão corretas
+# st.write(df_enderecos.head())
 
 st.write("""
     # Eleições Municipais de 2024 Bahia
@@ -46,7 +53,10 @@ if votaveis:
 else:
     st.sidebar.write('Selecione pelo menos um candidato.')
 
-# Exibe na tela o dataframe filtrado com as localidades selecionadas
+# Merge com os endereços
+df_votavel = df_votavel.merge(df_enderecos[['NR_SECAO', 'NM_LOCAL_VOTACAO']], on='NR_SECAO', how='left')
+
+# Exibe na tela o dataframe filtrado
 st.dataframe(df_votavel[colunas], hide_index=True, use_container_width=True)
 
 # Agrupar os votos por candidato e ordenar em ordem decrescente
