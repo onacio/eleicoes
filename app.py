@@ -6,13 +6,13 @@ import plotly.express as px
 st.set_page_config(layout='wide')
 
 # Colunas que serão exibidas
-colunas = ['NM_VOTAVEL', 'SG_PARTIDO', 'NR_VOTAVEL', 'NR_SECAO', 'QT_VOTOS', 'NM_LOCAL_VOTACAO']  # Adicione 'ENDERECO'
+colunas = ['NM_VOTAVEL', 'NR_SECAO', 'QT_VOTOS', 'NM_LOCAL_VOTACAO', 'DS_LOCAL_VOTACAO_ENDERECO', 'NM_BAIRRO', 'NM_ZONA']  # Adicione 'ENDERECO'
 
 # Carregando arquivo com dados
 df = pd.read_csv('maragogipe.csv', delimiter=';', encoding='latin1')
 
 # Carregando arquivo com endereços
-df_enderecos = pd.read_csv('local.csv', delimiter=';', encoding='latin1')  # Altere o nome do arquivo conforme necessário
+df_enderecos = pd.read_csv('endereco.csv', delimiter=';', encoding='latin1')  # Altere o nome do arquivo conforme necessário
 
 # Supondo que o df_enderecos tenha as colunas NR_SECAO e ENDERECO
 # Exibir as primeiras linhas para garantir que as colunas estão corretas
@@ -54,7 +54,7 @@ else:
     st.sidebar.write('Selecione pelo menos um candidato.')
 
 # Merge com os endereços
-df_votavel = df_votavel.merge(df_enderecos[['NR_SECAO', 'NM_LOCAL_VOTACAO']], on='NR_SECAO', how='left')
+df_votavel = df_votavel.merge(df_enderecos[['NR_SECAO', 'NM_LOCAL_VOTACAO', 'DS_LOCAL_VOTACAO_ENDERECO', 'NM_BAIRRO', 'NM_ZONA']], on='NR_SECAO', how='left')
 
 # Exibe na tela o dataframe filtrado
 st.dataframe(df_votavel[colunas], hide_index=True, use_container_width=True)
