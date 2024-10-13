@@ -6,10 +6,17 @@ import plotly.express as px
 st.set_page_config(layout='wide')
 
 # Colunas que serão exibidas
-colunas = ['NM_VOTAVEL', 'NR_SECAO', 'QT_VOTOS', 'NM_LOCAL_VOTACAO', 'DS_LOCAL_VOTACAO_ENDERECO', 'NM_BAIRRO', 'NM_ZONA']
+colunas = ['NM_VOTAVEL', 'NR_SECAO', 'QT_VOTOS', 'NM_LOCAL_VOTACAO', 'DS_LOCAL_VOTACAO_ENDERECO', 'NM_BAIRRO', 'NM_ZONA']  # Adicione 'ENDERECO'
 
 # Carregando arquivo com dados
-df = pd.read_csv('dados.csv', delimiter=';', encoding='latin1')
+df = pd.read_csv('maragogipe.csv', delimiter=';', encoding='latin1')
+
+# Carregando arquivo com endereços
+df_enderecos = pd.read_csv('endereco.csv', delimiter=';', encoding='latin1')  # Altere o nome do arquivo conforme necessário
+
+# Supondo que o df_enderecos tenha as colunas NR_SECAO e ENDERECO
+# Exibir as primeiras linhas para garantir que as colunas estão corretas
+# st.write(df_enderecos.head())
 
 st.write("""
     # Eleições Municipais de 2024 Bahia
@@ -19,27 +26,20 @@ st.write("""
 # Menu que seleciona o nome do votável na tela
 st.sidebar.title('Filtrar dados')
 
-municipio = st.sidebar.selectbox('Município', df['NM_MUNICIPIO_x'].unique())
-df_municipio = df[df['NM_MUNICIPIO_x'] == municipio]
+municipio = st.sidebar.selectbox('Município', df['NM_MUNICIPIO'].unique())
+df_municipio = df[df['NM_MUNICIPIO'] == municipio]
 
 cargo = st.sidebar.selectbox('Cargo', df_municipio['DS_CARGO_PERGUNTA'].unique())
 df_cargo = df_municipio[df_municipio['DS_CARGO_PERGUNTA'] == cargo]
 
-# Multiselect para selecionar vários candidatos
+# Alteração: Usar multiselect para selecionar vários candidatos
 votaveis = st.sidebar.multiselect('Nome do votável (Candidato)', df_cargo['NM_VOTAVEL'].unique())
-
-# Multiselect para filtrar pelos locais de votação
-locais_votacao = st.sidebar.multiselect('Local de Votação', df_cargo['NM_LOCAL_VOTACAO'].unique())
 
 # Filtro para os candidatos selecionados
 if votaveis:
     df_votavel = df_cargo[df_cargo['NM_VOTAVEL'].isin(votaveis)]
 else:
     df_votavel = df_cargo
-
-# Filtro para os locais de votação selecionados
-if locais_votacao:
-    df_votavel = df_votavel[df_votavel['NM_LOCAL_VOTACAO'].isin(locais_votacao)]
 
 # Exibindo dados do candidato na barra lateral
 if votaveis:
@@ -53,6 +53,9 @@ if votaveis:
 else:
     st.sidebar.write('Selecione pelo menos um candidato.')
 
+# Merge com os endereços
+df_votavel = df_votavel.merge(df_enderecos[['NR_SECAO', 'NM_LOCAL_VOTACAO', 'DS_LOCAL_VOTACAO_ENDERECO', 'NM_BAIRRO', 'NM_ZONA']], on='NR_SECAO', how='left')
+
 # Exibe na tela o dataframe filtrado
 st.dataframe(df_votavel[colunas], hide_index=True, use_container_width=True)
 
@@ -60,26 +63,15 @@ st.dataframe(df_votavel[colunas], hide_index=True, use_container_width=True)
 df_votos_por_candidato = df_votavel.groupby('NM_VOTAVEL')['QT_VOTOS'].sum().reset_index()
 df_votos_por_candidato = df_votos_por_candidato.sort_values(by='QT_VOTOS', ascending=False)
 
-# Definir a altura do gráfico com base no número de candidatos, com altura mínima
-num_candidatos = len(df_votos_por_candidato)
-altura_minima = 400  # Define a altura mínima
-altura_grafico = max(50 * num_candidatos, altura_minima)  # Altura mínima ou dinâmica, o que for maior
-
-# Criar o gráfico de barras horizontal para comparar candidatos
+# Criar o gráfico de barras vertical para comparar candidatos
 fig = px.bar(df_votos_por_candidato, 
-             x='QT_VOTOS',  # Total de votos no eixo X
-             y='NM_VOTAVEL',  # Nome do candidato no eixo Y
-             orientation='h',  # Barras horizontais
+             x='NM_VOTAVEL', 
+             y='QT_VOTOS', 
              labels={'QT_VOTOS': 'Total de Votos', 'NM_VOTAVEL': 'Candidato'},
              title=f'Comparação de Votos para {cargo}')
 
 # Ajustar o layout para melhorar a exibição
-fig.update_layout(
-    yaxis=dict(autorange="reversed"),  # Reverter para que o candidato com mais votos fique no topo
-    height=altura_grafico,  # Altura dinâmica com um mínimo
-    margin=dict(l=200),  # Aumenta a margem à esquerda para nomes longos
-    bargap=0.1  # Ajusta o espaço entre as barras
-)
+fig.update_layout(xaxis_tickangle=-45)  # Inclinar os nomes dos candidatos
 
 # Exibir o gráfico no Streamlit
 st.plotly_chart(fig)
