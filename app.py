@@ -65,13 +65,16 @@ num_candidatos = len(df_votos_por_candidato)
 altura_minima = 400  # Define a altura mínima
 altura_grafico = max(50 * num_candidatos, altura_minima)  # Altura mínima ou dinâmica, o que for maior
 
-# Criar o gráfico de barras horizontal para comparar candidatos
+filtro_local = ', '.join(locais_votacao) if locais_votacao else 'Nenhum local de votação selecionado'
+
+# Criar o gráfico de barras horizontal para comparar candidatos com rótulos de votos
 fig = px.bar(df_votos_por_candidato, 
              x='QT_VOTOS',  # Total de votos no eixo X
              y='NM_VOTAVEL',  # Nome do candidato no eixo Y
              orientation='h',  # Barras horizontais
-             labels={'QT_VOTOS': 'Total de Votos', 'NM_VOTAVEL': 'Candidato'},
-             title=f'Comparação de Votos para {cargo}')
+             labels={'QT_VOTOS': f"Local de votação: {filtro_local}", 'NM_VOTAVEL': 'Candidato'},
+             title=f'Comparação de votos para {cargo}',             
+             text='QT_VOTOS')  # Adicionar rótulos de votos nas barras
 
 # Ajustar o layout para melhorar a exibição
 fig.update_layout(
@@ -81,5 +84,23 @@ fig.update_layout(
     bargap=0.1  # Ajusta o espaço entre as barras
 )
 
+# Ajustar o estilo dos rótulos
+fig.update_traces(texttemplate='%{text}', textposition='auto')  # Exibe os rótulos no centro das barras
+
+# Adicionar anotação com informações do desenvolvedor no rodapé do gráfico
+
+fig.add_annotation(
+    text=("Criado por Onácio Santana"),
+    xref="paper", yref="paper",
+    x=0.5, y=-0.3,  # Posição centralizada e abaixo do gráfico
+    showarrow=False,
+    font=dict(size=12),
+    align="center"
+)
 # Exibir o gráfico no Streamlit
 st.plotly_chart(fig)
+
+# Informações sobre o desenvolvedor
+st.write("---")  # Adiciona uma linha divisória
+st.write("**Desenvolvido por:** Onácio Santana")
+st.write("[GitHub](https://github.com/seu_usuario) | [LinkedIn](https://linkedin.com/in/seu_usuario)")
